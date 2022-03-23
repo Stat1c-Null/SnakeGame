@@ -2,13 +2,13 @@ import pygame as py
 import random as r
 
 #Colors     
-snake_color = (r.randint(0, 255), r.randint(0, 255), r.randint(0, 255))
 apple_color = (171, 38, 38)
 background_color = (34, 179, 9)
 score_color = (212, 208, 13)
 speed_color = (144, 13, 209)
 text_color = (128, 0, 255)
 menu_color = (0, 0, 0)
+inst_color = (10, 200, 30)
 
 #Set up display
 py.init()
@@ -27,9 +27,19 @@ y_pos = []
 font = py.font.SysFont("calibri", 20)
 score_font = py.font.SysFont("comicsansms", 40)
 
+#Movement Directions
+left = False
+right = False
+up = False
+down = False
+
 def gameover_text(text):
   mesg = font.render(text, True, text_color)
   display.blit(mesg, [dis_width / 6, dis_height / 3])
+
+def instructions_text(text):
+  mesg = font.render(text, True, inst_color)
+  display.blit(mesg, [dis_width / 5, dis_height - 130])
 
 def ui_text(score, speed):
   global score_color, speed_color
@@ -53,8 +63,15 @@ def spawn_food(num):
     food_y = round(r.randrange(0 + snake_size, dis_height - snake_size) / 10) * 10
     y_pos.append(food_y)
 
+def reset_dir(rightPar: bool, leftPar: bool, upPar: bool, downPar: bool):
+  global right, left, up, down
+  right = rightPar
+  left = leftPar
+  up = upPar
+  down = downPar
+  
 def game_loop(restart: bool):
-  global snake_color, food_color, snake_size, x_pos, y_pos
+  global snake_color, food_color, snake_size, x_pos, y_pos, left, right, up, down
   game_over = False
   game_close = False
   game_start = restart
@@ -71,12 +88,14 @@ def game_loop(restart: bool):
   speed_reset = 30
   num_apples = 5
   spawn_food(num_apples)#Generate positions
+  snake_color = (r.randint(0, 255), r.randint(0, 255), r.randint(0, 255))
 
   while game_close == False:
     #Game Start Screen
     while game_start == False:
       display.fill(menu_color)
       gameover_text("Welcome to Snake Game! Press F to Start")
+      instructions_text("WASD or Arrow Keys for Movement")
       py.display.update()#Keep stuff drawn on screen
       for event in py.event.get():
         if event.type == py.KEYDOWN:
@@ -106,16 +125,20 @@ def game_loop(restart: bool):
       #Controls
       if event.type == py.KEYDOWN:
         #WASD and Arrow Keys
-        if event.key == py.K_a or event.key == py.K_LEFT:
+        if (event.key == py.K_a or event.key == py.K_LEFT) and not right:
+          reset_dir(False, True, False, False)
           x1_change = -snake_speed
           y1_change = 0
-        elif event.key == py.K_d or event.key == py.K_RIGHT:
+        elif (event.key == py.K_d or event.key == py.K_RIGHT) and not left:
+          reset_dir(True, False, False, False)
           x1_change = snake_speed
           y1_change = 0
-        elif event.key == py.K_w or event.key == py.K_UP:
+        elif (event.key == py.K_w or event.key == py.K_UP) and not down:
+          reset_dir(False, False, True, False)
           x1_change = 0
           y1_change = -snake_speed
-        elif event.key == py.K_s or event.key == py.K_DOWN:
+        elif (event.key == py.K_s or event.key == py.K_DOWN) and not up:
+          reset_dir(False, False, False, True)
           x1_change = 0
           y1_change = snake_speed
     #Kill snake if it hits the wall
